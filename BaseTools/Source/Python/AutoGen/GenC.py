@@ -1124,7 +1124,7 @@ def CreateModulePcdCode(Info, AutoGenC, AutoGenH, Pcd):
                 AutoGenH.Append('#define %s(SizeOfBuffer, Buffer)  LibPatchPcdSetPtrAndSizeS((VOID *)_gPcd_BinaryPatch_%s, &_gPcd_BinaryPatch_Size_%s, (UINTN)_PCD_PATCHABLE_%s_SIZE, (SizeOfBuffer), (Buffer))\n' % (SetModeStatusName, Pcd.TokenCName, Pcd.TokenCName, Pcd.TokenCName))
             else:
                 AutoGenH.Append('#define %s(Value)  (%s = (Value))\n' % (SetModeName, PcdVariableName))
-                AutoGenH.Append('#define %s(Value)  ((%s = (Value)), RETURN_SUCCESS) \n' % (SetModeStatusName, PcdVariableName))
+                AutoGenH.Append('#define %s(Value)  (%s = (Value))\n' % (SetModeStatusName, PcdVariableName))
         else:
             AutoGenH.Append('//#define %s  ASSERT(FALSE)  // It is not allowed to set value for a FIXED_AT_BUILD PCD\n' % SetModeName)
 
@@ -1277,7 +1277,7 @@ def CreateLibraryPcdCode(Info, AutoGenC, AutoGenH, Pcd):
             AutoGenH.Append('extern const UINTN %s; \n' % PatchPcdMaxSizeVariable)
         else:
             AutoGenH.Append('#define %s(Value)  (%s = (Value))\n' % (SetModeName, PcdVariableName))
-            AutoGenH.Append('#define %s(Value)  ((%s = (Value)), RETURN_SUCCESS)\n' % (SetModeStatusName, PcdVariableName))
+            AutoGenH.Append('#define %s(Value)  (%s = (Value))\n' % (SetModeStatusName, PcdVariableName))
             AutoGenH.Append('#define %s %s\n' % (PatchPcdSizeTokenName, PcdDataSize))
 
         AutoGenH.Append('#define %s %s\n' % (GetModeSizeName, PatchPcdSizeVariableName))
