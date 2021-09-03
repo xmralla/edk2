@@ -512,6 +512,7 @@ GatherDeviceInfo (
       Offset = PciIovParseVfBar (PciIoDevice, Offset, BarIndex);
     }
   }
+  DEBUG ((DEBUG_INFO, "%a: [0x%04x:0x%04x]\n", __FUNCTION__, PciIoDevice->Pci.Hdr.VendorId, PciIoDevice->Pci.Hdr.DeviceId));
 
   DEBUG_CODE (DumpPciBars (PciIoDevice););
   return PciIoDevice;
@@ -546,6 +547,8 @@ GatherPpbInfo (
   UINT32                          PMemBaseLimit;
   UINT16                          PrefetchableMemoryBase;
   UINT16                          PrefetchableMemoryLimit;
+
+  DEBUG ((DEBUG_INFO, "%a: start %d/%d/%d\n", __FUNCTION__, Bus, Device, Func));
 
   PciIoDevice = CreatePciIoDevice (
                   Bridge,
@@ -592,8 +595,10 @@ GatherPpbInfo (
   if (Value != 0) {
     if ((Value & 0x01) != 0) {
       PciIoDevice->Decodes |= EFI_BRIDGE_IO32_DECODE_SUPPORTED;
+      DEBUG ((DEBUG_INFO, "%a: EFI_BRIDGE_IO32_DECODE_SUPPORTED\n", __FUNCTION__));
     } else {
       PciIoDevice->Decodes |= EFI_BRIDGE_IO16_DECODE_SUPPORTED;
+      DEBUG ((DEBUG_INFO, "%a: EFI_BRIDGE_IO16_DECODE_SUPPORTED\n", __FUNCTION__));
     }
   }
 
@@ -657,8 +662,10 @@ GatherPpbInfo (
     if (!EFI_ERROR (Status)) {
       PciIoDevice->Decodes |= EFI_BRIDGE_PMEM32_DECODE_SUPPORTED;
       PciIoDevice->Decodes |= EFI_BRIDGE_PMEM64_DECODE_SUPPORTED;
+      DEBUG ((DEBUG_INFO, "%a: EFI_BRIDGE_PMEM32_DECODE_SUPPORTED EFI_BRIDGE_PMEM64_DECODE_SUPPORTED\n", __FUNCTION__));
     } else {
       PciIoDevice->Decodes |= EFI_BRIDGE_PMEM32_DECODE_SUPPORTED;
+      DEBUG ((DEBUG_INFO, "%a: EFI_BRIDGE_PMEM32_DECODE_SUPPORTED\n", __FUNCTION__));
     }
   }
 
@@ -674,6 +681,7 @@ GatherPpbInfo (
     DumpPciBars (PciIoDevice);
   );
 
+  DEBUG ((DEBUG_INFO, "%a: end Decodes=0x%x\n", __FUNCTION__, PciIoDevice->Decodes));
   return PciIoDevice;
 }
 
@@ -700,6 +708,7 @@ GatherP2CInfo (
   )
 {
   PCI_IO_DEVICE                   *PciIoDevice;
+  DEBUG ((DEBUG_INFO, "%a: start %d/%d/%d\n", __FUNCTION__, Bus, Device, Func));
 
   PciIoDevice = CreatePciIoDevice (
                   Bridge,
@@ -710,6 +719,7 @@ GatherP2CInfo (
                   );
 
   if (PciIoDevice == NULL) {
+    DEBUG ((DEBUG_INFO, "%a: end: NULL\n", __FUNCTION__));
     return NULL;
   }
 
@@ -734,9 +744,11 @@ GatherP2CInfo (
   PciIoDevice->Decodes = EFI_BRIDGE_MEM32_DECODE_SUPPORTED  |
                          EFI_BRIDGE_PMEM32_DECODE_SUPPORTED |
                          EFI_BRIDGE_IO32_DECODE_SUPPORTED;
+  DEBUG ((DEBUG_INFO, "%a: Decodes=0x%x end\n", __FUNCTION__, PciIoDevice->Decodes));
 
   DEBUG_CODE (DumpPciBars (PciIoDevice););
 
+  DEBUG ((DEBUG_INFO, "%a: end\n", __FUNCTION__));
   return PciIoDevice;
 }
 
@@ -905,8 +917,10 @@ BarExisted (
   }
 
   if (Value == 0) {
+    DEBUG ((DEBUG_INFO, "%a: 0x%x EFI_NOT_FOUND\n", __FUNCTION__, Offset));
     return EFI_NOT_FOUND;
   } else {
+    DEBUG ((DEBUG_INFO, "%a: x%x EFI_SUCCESS\n", __FUNCTION__, Offset));
     return EFI_SUCCESS;
   }
 }
@@ -1340,6 +1354,12 @@ UpdatePciInfo (
   Configuration = NULL;
   Status        = EFI_SUCCESS;
 
+  DEBUG ((DEBUG_INFO, "%a: start %d/%d/%d\n", __FUNCTION__, 
+          PciIoDevice->BusNumber,
+          PciIoDevice->DeviceNumber,
+          PciIoDevice->FunctionNumber
+        ));
+
   if (gIncompatiblePciDeviceSupport == NULL) {
     //
     // It can only be supported after the Incompatible PCI Device
@@ -1369,6 +1389,11 @@ UpdatePciInfo (
   }
 
   if (EFI_ERROR (Status) || Configuration == NULL ) {
+    DEBUG ((DEBUG_INFO, "%a: end %d/%d/%d EFI_UNSUPPORTED\n", __FUNCTION__, 
+            PciIoDevice->BusNumber,
+            PciIoDevice->DeviceNumber,
+            PciIoDevice->FunctionNumber
+          ));
     return EFI_UNSUPPORTED;
   }
 
@@ -1423,6 +1448,13 @@ UpdatePciInfo (
               PciIoDevice->PciBar[BarIndex].BarType = PciBarTypeMem32;
             case 64:
               PciIoDevice->PciBar[BarIndex].BarTypeFixed = TRUE;
+              DEBUG ((DEBUG_INFO, "%a: %d/%d/%d BAR%d %a\n", __FUNCTION__, 
+                      PciIoDevice->BusNumber,
+                      PciIoDevice->DeviceNumber,
+                      PciIoDevice->FunctionNumber,
+                      BarIndex,
+                      PciIoDevice->PciBar[BarIndex].BarTypeFixed == FALSE ? "!BarTypeFixed" : "BarTypeFixed"
+                    ));
               break;
             default:
               break;
@@ -1435,6 +1467,14 @@ UpdatePciInfo (
               PciIoDevice->PciBar[BarIndex].BarType = PciBarTypePMem32;
             case 64:
               PciIoDevice->PciBar[BarIndex].BarTypeFixed = TRUE;
+              DEBUG ((DEBUG_INFO, "%a: %d/%d/%d BAR%d %a\n", __FUNCTION__, 
+                      PciIoDevice->BusNumber,
+                      PciIoDevice->DeviceNumber,
+                      PciIoDevice->FunctionNumber,
+                      BarIndex,
+                      PciIoDevice->PciBar[BarIndex].BarTypeFixed == FALSE ? "!BarTypeFixed" : "BarTypeFixed"
+                    ));
+
               break;
             default:
               break;
@@ -1474,6 +1514,11 @@ UpdatePciInfo (
   }
 
   FreePool (Configuration);
+  DEBUG ((DEBUG_INFO, "%a: end %d/%d/%d\n", __FUNCTION__, 
+          PciIoDevice->BusNumber,
+          PciIoDevice->DeviceNumber,
+          PciIoDevice->FunctionNumber
+        ));
 
   return EFI_SUCCESS;
 }
@@ -1767,7 +1812,6 @@ PciParseBar (
 
   OriginalValue = 0;
   Value         = 0;
-
   Status = BarExisted (
              PciIoDevice,
              Offset,
@@ -1784,10 +1828,22 @@ PciParseBar (
     // Some devices don't fully comply to PCI spec 2.2. So be to scan all the BARs anyway
     //
     PciIoDevice->PciBar[BarIndex].Offset = (UINT8) Offset;
+    DEBUG ((DEBUG_INFO, "%a: %d/%d/%d BAR%d not exists\n", __FUNCTION__, 
+            PciIoDevice->BusNumber,
+            PciIoDevice->DeviceNumber,
+            PciIoDevice->FunctionNumber,
+            BarIndex
+          ));
+
     return Offset + 4;
   }
-
   PciIoDevice->PciBar[BarIndex].BarTypeFixed = FALSE;
+  if(PciIoDevice->BusNumber == 1 && PciIoDevice->DeviceNumber == 0)
+  {
+    PciIoDevice->PciBar[1].BarTypeFixed = TRUE;
+    PciIoDevice->PciBar[2].BarTypeFixed = TRUE;
+  }
+
   PciIoDevice->PciBar[BarIndex].Offset = (UINT8) Offset;
   if ((Value & 0x01) != 0) {
     //
@@ -1892,6 +1948,13 @@ PciParseBar (
           // some device implement MMIO bar with 0 length, need to treat it as no-bar
           //
           PciIoDevice->PciBar[BarIndex].BarType = PciBarTypeUnknown;
+        DEBUG ((DEBUG_INFO, "%a: %d/%d/%d BAR%d not exists\n", __FUNCTION__, 
+                PciIoDevice->BusNumber,
+                PciIoDevice->DeviceNumber,
+                PciIoDevice->FunctionNumber,
+                BarIndex
+              ));
+
           return Offset + 4;
         }
       }
@@ -1950,6 +2013,13 @@ PciParseBar (
     PciIoDevice->PciBar[BarIndex].BaseAddress = 0;
     PciIoDevice->PciBar[BarIndex].Alignment   = 0;
   }
+  DEBUG ((DEBUG_INFO, "%a: %d/%d/%d BAR%d exists%a\n", __FUNCTION__, 
+          PciIoDevice->BusNumber,
+          PciIoDevice->DeviceNumber,
+          PciIoDevice->FunctionNumber,
+          BarIndex,
+          PciIoDevice->PciBar[BarIndex].BarTypeFixed == FALSE ? ", !BarTypeFixed" : ", BarTypeFixed"
+        ));
 
   //
   // Increment number of bar

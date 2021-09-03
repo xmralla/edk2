@@ -18,6 +18,7 @@
 #include <Library/PcdLib.h>
 #include <Library/OrderedCollectionLib.h>
 #include <IndustryStandard/Acpi.h>
+#include <Library/DebugLib.h>
 
 
 //
@@ -974,6 +975,7 @@ InstallQemuFwCfgTables (
   ORDERED_COLLECTION_ENTRY *TrackerEntry, *TrackerEntry2;
   ORDERED_COLLECTION       *SeenPointers;
   ORDERED_COLLECTION_ENTRY *SeenPointerEntry, *SeenPointerEntry2;
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
 
   Status = QemuFwCfgFindFile ("etc/table-loader", &FwCfgItem, &FwCfgSize);
   if (EFI_ERROR (Status)) {

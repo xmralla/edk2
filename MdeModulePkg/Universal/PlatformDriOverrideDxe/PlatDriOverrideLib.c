@@ -1247,6 +1247,8 @@ GetDriverFromMapping (
   EFI_BUS_SPECIFIC_DRIVER_OVERRIDE_PROTOCOL  *BusSpecificDriverOverride;
   UINTN                       DevicePathSize;
 
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
+
   //
   // Check that ControllerHandle is a valid handle
   //
@@ -1288,6 +1290,7 @@ GetDriverFromMapping (
     }
     OverrideItemListIndex = GetNextNode (MappingDataBase, OverrideItemListIndex);
   }
+  DEBUG ((DEBUG_INFO, "%a: Controller %sfound \n", __FUNCTION__, ControllerFound ? "" : "not "));
 
   if (!ControllerFound) {
     return EFI_NOT_FOUND;
@@ -1384,6 +1387,7 @@ GetDriverFromMapping (
             }
           }
         }
+        DEBUG ((DEBUG_INFO, "%a: Image %sfound \n", __FUNCTION__, ImageFound ? "" : "not "));
 
         if (ImageFound) {
           //
@@ -1407,6 +1411,7 @@ GetDriverFromMapping (
           // and the Fat and Patition driver can endure executing in CALLBACK level in fact, so here permit
           // to use LoadImage() and  StartImage() in CALLBACK TPL.
           //
+          DEBUG ((DEBUG_INFO, "%a: Connecting device \n", __FUNCTION__));
           Status = ConnectDevicePath (DriverImageInfo->DriverImagePath);
           //
           // check whether it points to a PCI Option Rom image,
@@ -1424,6 +1429,8 @@ GetDriverFromMapping (
                           );
           if (!EFI_ERROR (Status) && (BusSpecificDriverOverride != NULL)) {
             ImageHandle = NULL;
+            DEBUG ((DEBUG_INFO, "%a: Get driver \n", __FUNCTION__));
+
             Status = BusSpecificDriverOverride->GetDriver (
                                                   BusSpecificDriverOverride,
                                                   &ImageHandle
@@ -1456,6 +1463,7 @@ GetDriverFromMapping (
             // Try to load the driver
             //
             TempDriverImagePath = DriverImageInfo->DriverImagePath;
+            DEBUG ((DEBUG_INFO, "%a: Load driver image \n", __FUNCTION__));
             Status = gBS->LoadImage (
                             FALSE,
                             CallerImageHandle,
@@ -1468,6 +1476,7 @@ GetDriverFromMapping (
               //
               // Try to start the driver
               //
+              DEBUG ((DEBUG_INFO, "%a: Start driver image \n", __FUNCTION__));
               Status = gBS->StartImage (ImageHandle, NULL, NULL);
               if (EFI_ERROR (Status)){
                 DriverImageInfo->UnStartable = TRUE;

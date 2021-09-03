@@ -1699,6 +1699,7 @@ PlatformBootManagerUnableToBoot (
   EFI_INPUT_KEY                Key;
   EFI_BOOT_MANAGER_LOAD_OPTION BootManagerMenu;
   UINTN                        Index;
+  DEBUG ((DEBUG_INFO, "%a\n", __FUNCTION__));
 
   //
   // BootManagerMenu doesn't contain the correct information when return status

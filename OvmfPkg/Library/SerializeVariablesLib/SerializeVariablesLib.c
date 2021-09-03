@@ -7,6 +7,7 @@
 **/
 
 #include "SerializeVariablesLib.h"
+#include <Library/DebugLib.h>
 
 /**
   Serialization format:
@@ -68,38 +69,44 @@ UnpackVariableFromBuffer (
 
   *NameSize = *(UINT32*) (BytePtr + Offset);
   Offset = Offset + sizeof (UINT32);
-
   if (Offset > MaxSize) {
+    DEBUG ((DEBUG_ERROR, "%a: NameSize is ivalid\n", __FUNCTION__));
     return EFI_INVALID_PARAMETER;
   }
 
   *Name = (CHAR16*) (BytePtr + Offset);
+  DEBUG ((DEBUG_INFO, "%a: %s\n", __FUNCTION__, *Name));
   Offset = Offset + *(UINT32*)BytePtr;
   if (Offset > MaxSize) {
+    DEBUG ((DEBUG_ERROR, "%a: Name is ivalid\n", __FUNCTION__));
     return EFI_INVALID_PARAMETER;
   }
 
   *Guid = (EFI_GUID*) (BytePtr + Offset);
   Offset = Offset + sizeof (EFI_GUID);
   if (Offset > MaxSize) {
+    DEBUG ((DEBUG_ERROR, "%a: Guid is ivalid\n", __FUNCTION__));
     return EFI_INVALID_PARAMETER;
   }
 
   *Attributes = *(UINT32*) (BytePtr + Offset);
   Offset = Offset + sizeof (UINT32);
   if (Offset > MaxSize) {
+    DEBUG ((DEBUG_ERROR, "%a: NameSize is ivalid\n", __FUNCTION__));
     return EFI_INVALID_PARAMETER;
   }
 
   *DataSize = *(UINT32*) (BytePtr + Offset);
   Offset = Offset + sizeof (UINT32);
   if (Offset > MaxSize) {
+    DEBUG ((DEBUG_ERROR, "%a: DataSize is ivalid\n", __FUNCTION__));
     return EFI_INVALID_PARAMETER;
   }
 
   *Data = (VOID*) (BytePtr + Offset);
   Offset = Offset + *DataSize;
   if (Offset > MaxSize) {
+    DEBUG ((DEBUG_ERROR, "%a: Data is ivalid\n", __FUNCTION__));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -167,7 +174,9 @@ IterateVariablesInBuffer (
                &Data,
                &SizeUsed
                );
+    DEBUG ((DEBUG_INFO, "%a TotalSizeUsed=%d SizeUsed=%d Status=%x\n", __FUNCTION__, TotalSizeUsed, SizeUsed, Status));
     if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_ERROR, "%a failed\n", __FUNCTION__));
       return Status;
     }
 
@@ -200,7 +209,14 @@ IterateVariablesInBuffer (
                Data
                );
 
+    DEBUG ((DEBUG_INFO, "%a TotalSizeUsed=%d SizeUsed=%d Status=%x\n", __FUNCTION__, TotalSizeUsed, SizeUsed, Status));
   }
+  DEBUG ((
+    DEBUG_INFO,
+    "TotalSizeUsed(%Lu) and MaxSize(%Lu)\n",
+    (UINT64)TotalSizeUsed,
+    (UINT64)MaxSize
+    ));
 
   if (AlignedName != NULL) {
     FreePool (AlignedName);
@@ -282,6 +298,8 @@ IterateVariablesCallbackSetSystemVariable (
   STATIC CONST UINT32 AuthMask =
                         EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS |
                         EFI_VARIABLE_TIME_BASED_AUTHENTICATED_WRITE_ACCESS;
+  DEBUG ((DEBUG_WARN, "%a: setting variable \"%s\"\n", __FUNCTION__,
+          VariableName));
 
   Status = gRT->SetVariable (
              VariableName,
@@ -290,6 +308,8 @@ IterateVariablesCallbackSetSystemVariable (
              DataSize,
              Data
              );
+  DEBUG ((DEBUG_WARN, "%a: setting variable \"%s\" Status=%d\n", __FUNCTION__,
+          VariableName, Status));
 
   if (Status == EFI_SECURITY_VIOLATION && (Attributes & AuthMask) != 0) {
     DEBUG ((DEBUG_WARN, "%a: setting authenticated variable \"%s\" "
@@ -463,6 +483,7 @@ SerializeVariablesNewInstanceFromBuffer (
   )
 {
   RETURN_STATUS Status;
+  DEBUG ((DEBUG_INFO, "%a\n", __FUNCTION__));
 
   Status = SerializeVariablesNewInstance (Handle);
   if (RETURN_ERROR (Status)) {
@@ -676,20 +697,22 @@ SerializeVariablesIterateInstanceVariables (
   IN VOID                                      *Context
   )
 {
+  RETURN_STATUS               Status = RETURN_SUCCESS;
   SV_INSTANCE    *Instance;
+  DEBUG ((DEBUG_INFO, "%a: start\n", __FUNCTION__));
 
   Instance = SV_FROM_HANDLE (Handle);
 
   if ((Instance->BufferPtr != NULL) && (Instance->DataSize != 0)) {
-    return IterateVariablesInBuffer (
+    Status = IterateVariablesInBuffer (
              CallbackFunction,
              Context,
              Instance->BufferPtr,
              Instance->DataSize
              );
-  } else {
-    return RETURN_SUCCESS;
   }
+  DEBUG ((DEBUG_INFO, "%a: end\n", __FUNCTION__));
+  return Status;
 }
 
 
@@ -711,11 +734,15 @@ SerializeVariablesSetSerializedVariables (
   IN EFI_HANDLE                       Handle
   )
 {
-  return SerializeVariablesIterateInstanceVariables (
+  RETURN_STATUS Status;
+  DEBUG ((DEBUG_INFO, "%a: start\n", __FUNCTION__));
+  Status = SerializeVariablesIterateInstanceVariables (
            Handle,
            IterateVariablesCallbackSetSystemVariable,
            NULL
            );
+  DEBUG ((DEBUG_INFO, "%a: end\n", __FUNCTION__));
+  return Status;
 }
 
 

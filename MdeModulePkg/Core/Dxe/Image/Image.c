@@ -1133,6 +1133,7 @@ CoreLoadImageCommon (
   UINTN                      FilePathSize;
   BOOLEAN                    ImageIsFromFv;
   BOOLEAN                    ImageIsFromLoadFile;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   SecurityStatus = EFI_SUCCESS;
 
@@ -1451,6 +1452,7 @@ Done:
   if (Image != NULL) {
     Image->LoadImageStatus = Status;
   }
+  DEBUG ((DEBUG_INFO, "%a:Status=%d\n", __FUNCTION__, Status));
 
   return Status;
 }
@@ -1505,6 +1507,8 @@ CoreLoadImage (
 {
   EFI_STATUS    Status;
   EFI_HANDLE    Handle;
+
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   PERF_LOAD_IMAGE_BEGIN (NULL);
 
@@ -1870,6 +1874,7 @@ CoreUnloadImage (
 {
   EFI_STATUS                 Status;
   LOADED_IMAGE_PRIVATE_DATA  *Image;
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
 
   Image = CoreLoadedImageInfo (ImageHandle);
   if (Image == NULL ) {

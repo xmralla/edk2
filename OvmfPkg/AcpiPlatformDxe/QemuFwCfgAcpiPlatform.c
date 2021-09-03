@@ -8,6 +8,7 @@
 **/
 
 #include "AcpiPlatform.h"
+#include <Library/DebugLib.h>
 
 /**
   Effective entrypoint of QEMU fw-cfg Acpi Platform driver.
@@ -27,7 +28,7 @@ InstallAcpiTables (
   )
 {
   EFI_STATUS                         Status;
-
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
   Status = InstallQemuFwCfgTables (AcpiTable);
   return Status;
 }

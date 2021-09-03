@@ -41,6 +41,7 @@ XhcReadCapReg8 (
     DEBUG ((EFI_D_ERROR, "XhcReadCapReg: Pci Io read error - %r at %d\n", Status, Offset));
     Data = 0xFF;
   }
+  DEBUG ((EFI_D_INFO, "%a: offset=0x%x data=0x%x\n",__FUNCTION__, Offset, Data));
 
   return Data;
 }
@@ -78,6 +79,7 @@ XhcReadCapReg (
     Data = 0xFFFFFFFF;
   }
 
+  DEBUG ((EFI_D_INFO, "%a: offset=0x%x data=0x%x\n",__FUNCTION__, Offset, Data));
   return Data;
 }
 
@@ -115,6 +117,7 @@ XhcReadOpReg (
     DEBUG ((EFI_D_ERROR, "XhcReadOpReg: Pci Io Read error - %r at %d\n", Status, Offset));
     Data = 0xFFFFFFFF;
   }
+  DEBUG ((EFI_D_INFO, "%a: base=0x%x offset=0x%x data=0x%x\n",__FUNCTION__, Xhc->CapLength, Offset, Data));
 
   return Data;
 }
@@ -150,6 +153,7 @@ XhcWriteOpReg (
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "XhcWriteOpReg: Pci Io Write error: %r at %d\n", Status, Offset));
   }
+  DEBUG ((EFI_D_INFO, "%a: base=0x%x offset=0x%x data=0x%x\n",__FUNCTION__, Xhc->CapLength, Offset, Data));
 }
 
 
@@ -187,6 +191,7 @@ XhcWriteDoorBellReg (
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "XhcWriteOpReg: Pci Io Write error: %r at %d\n", Status, Offset));
   }
+  DEBUG ((EFI_D_INFO, "%a: base=0x%x offset=0x%x data=0x%x\n",__FUNCTION__, Xhc->DBOff, Offset, Data));
 }
 
 /**
@@ -223,6 +228,7 @@ XhcReadRuntimeReg (
     Data = 0xFFFFFFFF;
   }
 
+  DEBUG ((EFI_D_INFO, "%a: base=0x%x offset=0x%x data=0x%x\n",__FUNCTION__, Xhc->RTSOff, Offset, Data));
   return Data;
 }
 
@@ -257,6 +263,7 @@ XhcWriteRuntimeReg (
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "XhcWriteRuntimeReg: Pci Io Write error: %r at %d\n", Status, Offset));
   }
+  DEBUG ((EFI_D_INFO, "%a: base=0x%x offset=0x%x data=0x%x\n",__FUNCTION__, Xhc->RTSOff, Offset, Data));
 }
 
 /**
@@ -292,6 +299,7 @@ XhcReadExtCapReg (
     DEBUG ((EFI_D_ERROR, "XhcReadExtCapReg: Pci Io Read error - %r at %d\n", Status, Offset));
     Data = 0xFFFFFFFF;
   }
+  DEBUG ((EFI_D_INFO, "%a: base=0x%x offset=0x%x data=0x%x\n",__FUNCTION__, Xhc->ExtCapRegBase, Offset, Data));
 
   return Data;
 }
@@ -327,6 +335,7 @@ XhcWriteExtCapReg (
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "XhcWriteExtCapReg: Pci Io Write error: %r at %d\n", Status, Offset));
   }
+  DEBUG ((EFI_D_INFO, "%a: base=0x%x offset=0x%x data=0x%x\n",__FUNCTION__, Xhc->ExtCapRegBase, Offset, Data));
 }
 
 
@@ -508,7 +517,7 @@ XhcSetBiosOwnership (
     return;
   }
 
-  DEBUG ((EFI_D_INFO, "XhcSetBiosOwnership: called to set BIOS ownership\n"));
+  DEBUG ((EFI_D_INFO, "%a: called to set BIOS ownership\n", __FUNCTION__));
 
   Buffer = XhcReadExtCapReg (Xhc, Xhc->UsbLegSupOffset);
   Buffer = ((Buffer & (~USBLEGSP_OS_SEMAPHORE)) | USBLEGSP_BIOS_SEMAPHORE);
@@ -532,7 +541,7 @@ XhcClearBiosOwnership (
     return;
   }
 
-  DEBUG ((EFI_D_INFO, "XhcClearBiosOwnership: called to clear BIOS ownership\n"));
+  DEBUG ((EFI_D_INFO, "%a: called to clear BIOS ownership\n", __FUNCTION__));
 
   Buffer = XhcReadExtCapReg (Xhc, Xhc->UsbLegSupOffset);
   Buffer = ((Buffer & (~USBLEGSP_BIOS_SEMAPHORE)) | USBLEGSP_OS_SEMAPHORE);
@@ -641,6 +650,7 @@ XhcSetHsee (
                         );
   if (!EFI_ERROR (Status)) {
     if ((XhciCmd & EFI_PCI_COMMAND_SERR) != 0) {
+      DEBUG ((EFI_D_INFO, "%a: set hsee bit=%d\n",__FUNCTION__, XHC_USBCMD_HSEE));
       XhcSetOpRegBit (Xhc, XHC_USBCMD_OFFSET, XHC_USBCMD_HSEE);
     }
   }
@@ -680,6 +690,7 @@ XhcResetHC (
 
   if ((Xhc->DebugCapSupOffset == 0xFFFFFFFF) || ((XhcReadExtCapReg (Xhc, Xhc->DebugCapSupOffset) & 0xFF) != XHC_CAP_USB_DEBUG) ||
       ((XhcReadExtCapReg (Xhc, Xhc->DebugCapSupOffset + XHC_DC_DCCTRL) & BIT0) == 0)) {
+    DEBUG ((EFI_D_INFO, "%a: set reset bit=%d\n",__FUNCTION__, XHC_USBCMD_RESET));
     XhcSetOpRegBit (Xhc, XHC_USBCMD_OFFSET, XHC_USBCMD_RESET);
     //
     // Some XHCI host controllers require to have extra 1ms delay before accessing any MMIO register during reset.
@@ -687,6 +698,7 @@ XhcResetHC (
     // The below is a workaround to solve such problem.
     //
     gBS->Stall (XHC_1_MILLISECOND);
+    DEBUG ((EFI_D_INFO, "%a: wait reset bit=%d\n",__FUNCTION__, XHC_USBCMD_RESET));
     Status = XhcWaitOpRegBit (Xhc, XHC_USBCMD_OFFSET, XHC_USBCMD_RESET, FALSE, Timeout);
 
     if (!EFI_ERROR (Status)) {
@@ -719,8 +731,9 @@ XhcHaltHC (
   )
 {
   EFI_STATUS              Status;
-
+  DEBUG ((EFI_D_INFO, "%a: clear run bit=%d\n",__FUNCTION__, XHC_USBCMD_RUN));
   XhcClearOpRegBit (Xhc, XHC_USBCMD_OFFSET, XHC_USBCMD_RUN);
+  DEBUG ((EFI_D_INFO, "%a: wait halt bit=%d\n",__FUNCTION__, XHC_USBSTS_HALT));
   Status = XhcWaitOpRegBit (Xhc, XHC_USBSTS_OFFSET, XHC_USBSTS_HALT, TRUE, Timeout);
   return Status;
 }
@@ -743,8 +756,9 @@ XhcRunHC (
   )
 {
   EFI_STATUS              Status;
-
+  DEBUG ((EFI_D_INFO, "%a: set run bit=%d\n",__FUNCTION__, XHC_USBCMD_RUN));
   XhcSetOpRegBit (Xhc, XHC_USBCMD_OFFSET, XHC_USBCMD_RUN);
+  DEBUG ((EFI_D_INFO, "%a: wait  halt bit=%d\n",__FUNCTION__, XHC_USBSTS_HALT));
   Status = XhcWaitOpRegBit (Xhc, XHC_USBSTS_OFFSET, XHC_USBSTS_HALT, FALSE, Timeout);
   return Status;
 }

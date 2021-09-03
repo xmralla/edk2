@@ -35,6 +35,8 @@ DetectSmbiosVersion (
   QEMU_SMBIOS_ANCHOR   QemuAnchor;
   UINT16               SmbiosVersion;
   RETURN_STATUS        PcdStatus;
+  
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   if (PcdGetBool (PcdQemuSmbiosValidated)) {
     //
@@ -50,6 +52,7 @@ DetectSmbiosVersion (
       RETURN_ERROR (QemuFwCfgFindFile (
                       "etc/smbios/smbios-tables", &Tables, &TablesSize)) ||
       TablesSize == 0) {
+    DEBUG ((DEBUG_INFO, "%a: no smbios\n", __FUNCTION__));
     return RETURN_SUCCESS;
   }
 

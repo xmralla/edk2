@@ -17,6 +17,7 @@ InstallAcpiTable (
   OUT  UINTN                         *TableKey
   )
 {
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
   return AcpiProtocol->InstallAcpiTable (
                          AcpiProtocol,
                          AcpiTableBuffer,
@@ -52,6 +53,7 @@ LocateFvInstanceWithTables (
   UINTN                         Size;
   UINTN                         Index;
   EFI_FIRMWARE_VOLUME2_PROTOCOL *FvInstance;
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
 
   FvStatus = 0;
 
@@ -154,6 +156,7 @@ InstallOvmfFvTables (
   Instance     = 0;
   CurrentTable = NULL;
   TableHandle  = 0;
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
 
   if (QemuDetected ()) {
     TableInstallFunction = QemuInstallAcpiTable;
@@ -246,6 +249,7 @@ InstallAcpiTables (
   )
 {
   EFI_STATUS                         Status;
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
 
   if (XenDetected ()) {
     Status = InstallXenTables (AcpiTable);
@@ -254,6 +258,8 @@ InstallAcpiTables (
   }
 
   if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "%a: install internal ACPI tables\n", __FUNCTION__));
+
     Status = InstallOvmfFvTables (AcpiTable);
   }
 

@@ -1079,6 +1079,7 @@ EfiBootManagerGetLoadOptions (
       OptionNumber = OptionOrder[Index];
       UnicodeSPrint (OptionName, sizeof (OptionName), L"%s%04x", mBmLoadOptionName[LoadOptionType], OptionNumber);
 
+      DEBUG ((DEBUG_INFO, "%a: %s\n", __FUNCTION__, OptionName));
       Status = EfiBootManagerVariableToLoadOption (OptionName, &Options[OptionIndex]);
       if (EFI_ERROR (Status)) {
         DEBUG ((EFI_D_INFO, "[Bds] %s doesn't exist - Update ****Order variable to remove the reference!!", OptionName));

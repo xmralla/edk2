@@ -402,7 +402,8 @@ CoreConnectSingleController (
   UINTN                                      SortIndex;
   BOOLEAN                                    OneStarted;
   BOOLEAN                                    DriverFound;
-
+  
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
   //
   // Initialize local variables
   //
@@ -527,6 +528,8 @@ CoreConnectSingleController (
   if (!EFI_ERROR (Status) && (BusSpecificDriverOverride != NULL)) {
     DriverImageHandle = NULL;
     do {
+    DEBUG ((DEBUG_INFO, "%a: get driver\n", __FUNCTION__));
+
       Status = BusSpecificDriverOverride->GetDriver (
                                             BusSpecificDriverOverride,
                                             &DriverImageHandle
@@ -637,6 +640,8 @@ CoreConnectSingleController (
           // on ControllerHandle.
           //
           PERF_DRIVER_BINDING_START_BEGIN (DriverBinding->DriverBindingHandle, ControllerHandle);
+        DEBUG ((DEBUG_INFO, "%a: start driver\n", __FUNCTION__));
+
           Status = DriverBinding->Start (
                                     DriverBinding,
                                     ControllerHandle,

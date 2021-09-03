@@ -65,6 +65,7 @@ GetShadowedRomParameters (
   UINTN               PciBus;
   UINTN               PciDevice;
   UINTN               PciFunction;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   //
   // Get the PCI I/O Protocol on PciHandle
@@ -150,6 +151,7 @@ RomShadow (
 {
   EFI_STATUS          Status;
   EFI_PCI_IO_PROTOCOL *PciIo;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   //
   // See if there is room to register another option ROM
@@ -211,6 +213,7 @@ IsLegacyRom (
   UINTN               Bus;
   UINTN               Device;
   UINTN               Function;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   //
   // Get the PCI I/O Protocol on PciHandle
@@ -288,6 +291,7 @@ GetPciLegacyRom (
   VOID                    *BackupImage;
   VOID                    *BestImage;
 
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   if (*ImageSize < sizeof (EFI_PCI_ROM_HEADER)) {
     return EFI_NOT_FOUND;
@@ -458,6 +462,7 @@ CreateBridgeTable (
   PCI_TYPE01          PciConfigHeader;
   BRIDGE_TABLE        SlotBridges[MAX_BRIDGE_INDEX];
   UINTN               SlotBridgeIndex;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   BridgeIndex = 0x00;
   SlotBridgeIndex = 0x00;
@@ -609,6 +614,8 @@ GetBaseBus (
   )
 {
   UINTN Index;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
+
   for (Index = 0; Index < RoutingTableEntries; Index++) {
     if ((RoutingTable[Index].Bus == PciBus) && (RoutingTable[Index].Device == (PciDevice << 3))) {
       return EFI_SUCCESS;
@@ -707,6 +714,7 @@ Rotate (B,C,D,A) by 1 giving C,D,A,B. Translated PIRQ is C.
   BaseBus         = *PciBus;
   BaseDevice      = *PciDevice;
   BaseFunction    = *PciFunction;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   //
   // LocalPirqIndex list PIRQs in rotated fashion
@@ -908,6 +916,7 @@ InstallLegacyIrqHandler (
   UINTN                     TempData;
   UINTN                     RegisterAddress;
   UINT32                    Granularity;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   PrimaryMaster   = 0;
   SecondaryMaster = 0;
@@ -1104,6 +1113,7 @@ PciProgramAllInterruptLineRegisters (
   Legacy8259          = Private->Legacy8259;
   LegacyInterrupt     = Private->LegacyInterrupt;
   LegacyBiosPlatform  = Private->LegacyBiosPlatform;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   LegacyBiosPlatform->GetRoutingTable (
                         Private->LegacyBiosPlatform,
@@ -1330,6 +1340,8 @@ PciProgramAllInterruptLineRegisters (
       //
       // Write InterruptPin and enable 8259.
       //
+      DEBUG ((DEBUG_INFO, "%a: Write InterruptPin and enable 8259 PIN=%d\n", __FUNCTION__, PciIrq));
+
       PciIo->Pci.Write (
                    PciIo,
                    EfiPciIoWidthUint8,
@@ -1385,6 +1397,8 @@ FindNextPnpExpansionHeader (
 {
   UINTN                       TempData;
   LEGACY_PNP_EXPANSION_HEADER *LocalPnpPtr;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
+
   LocalPnpPtr = *PnpPtr;
   if (FirstHeader == FIRST_INSTANCE) {
     mBasePnpPtr     = LocalPnpPtr;
@@ -1451,6 +1465,7 @@ UpdateBevBcvTable (
   Function    = 0;
   Class       = 0;
   DeviceType  = BBS_UNKNOWN;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   //
   // Skip floppy and 2*onboard IDE controller entries(Master/Slave per
@@ -1577,6 +1592,7 @@ PciShadowRoms (
   PCI_TYPE00                        PciConfigHeader;
   UINT16                            *Command;
   UINT64                            Supports;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   //
   // Make the VGA device first
@@ -1713,6 +1729,7 @@ PciShadowRoms (
     // If legacy VBIOS Oprom has not been dispatched before, install legacy VBIOS here.
     //
     if (IS_PCI_DISPLAY (&Pci) && Index == 0) {
+      DEBUG ((DEBUG_INFO, "%a: Install VGA BIOS\n", __FUNCTION__));
       Status = LegacyBiosInstallVgaRom (Private);
       //
       // A return status of EFI_NOT_FOUND is considered valid (No EFI
@@ -1819,6 +1836,8 @@ LegacyBiosCheckPciRom (
   OUT UINTN                             *Flags
   )
 {
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
+
   return LegacyBiosCheckPciRomEx (
            This,
            PciHandle,
@@ -1946,6 +1965,7 @@ LegacyBiosCheckPciRomEx (
   if (RomSize != NULL) {
     *RomSize = LocalRomSize;
   }
+  DEBUG ((DEBUG_INFO, "%a: flags=%x\n", __FUNCTION__, *Flags));
 
   return EFI_SUCCESS;
 }
@@ -2071,6 +2091,8 @@ LegacyBiosInstallVgaRom (
   //
   // Get the VGA device.
   //
+  DEBUG ((DEBUG_INFO, "%a: Get the VGA device\n", __FUNCTION__));
+
   Status = Private->LegacyBiosPlatform->GetPlatformHandle (
                                           Private->LegacyBiosPlatform,
                                           EfiGetPlatformVgaHandle,
@@ -2197,6 +2219,8 @@ LegacyBiosInstallVgaRom (
     // Attach the VGA thunk driver.
     // Assume the video is installed. This prevents potential of infinite recursion.
     //
+    DEBUG ((DEBUG_INFO, "%a: Attach the VGA thunk driver\n", __FUNCTION__));
+
     Status = gBS->ConnectController (
                     VgaHandle,
                     ConnectHandleBuffer,
@@ -2284,6 +2308,7 @@ LegacyBiosInstallRom (
   UINTN                 RuntimeAddress;
   EFI_PHYSICAL_ADDRESS  PhysicalAddress;
   UINT32                Granularity;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   PciIo           = NULL;
   LocalDiskStart  = 0;
@@ -2815,6 +2840,7 @@ LegacyBiosInstallPciRom (
   UINT8                           OpromRevision;
   UINT32                          Granularity;
   PCI_3_0_DATA_STRUCTURE          *Pcir;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   OpromRevision = 0;
 
@@ -2905,6 +2931,8 @@ LegacyBiosInstallPciRom (
           (!Private->VgaInstalled)
          ) {
         mVgaInstallationInProgress = TRUE;
+        DEBUG ((DEBUG_INFO, "%a: mVgaInstallationInProgress\n", __FUNCTION__));
+
 
         //
         //      return EFI_UNSUPPORTED;

@@ -73,6 +73,7 @@ QemuInstallAcpiMadtTable (
   VOID                                                *Ptr;
   UINTN                                               Loop;
   EFI_STATUS                                          Status;
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
 
   ASSERT (AcpiTableBufferSize >= sizeof (EFI_ACPI_DESCRIPTION_HEADER));
 
@@ -300,7 +301,7 @@ PopulateFwData(
     ));
   DEBUG ((
     DEBUG_INFO,
-    "ACPI PciWindow64: Base=0x%08lx End=0x%08lx Length=0x%08lx\n",
+    "ACPI PciWindow64: Base=0x%016lx End=0x%016lx Length=0x%016lx\n",
     FwData->PciWindow64.Base,
     FwData->PciWindow64.End,
     FwData->PciWindow64.Length
@@ -487,6 +488,8 @@ QemuInstallAcpiTable (
   OUT  UINTN                         *TableKey
   )
 {
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
+
   EFI_ACPI_DESCRIPTION_HEADER        *Hdr;
   EFI_ACPI_TABLE_INSTALL_ACPI_TABLE  TableInstallFunction;
 

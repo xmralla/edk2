@@ -123,6 +123,10 @@ GetDriver (
         continue;
       } else {
         *DriverImageHandle = Override->DriverImageHandle;
+      DEBUG ((DEBUG_INFO, "%a: [%04x:%04x] %p\n", __FUNCTION__,
+        PciIoDevice->Pci.Hdr.VendorId, PciIoDevice->Pci.Hdr.DeviceId, *DriverImageHandle
+        ));
+
         return EFI_SUCCESS;
       }
     }
@@ -131,6 +135,9 @@ GetDriver (
       ReturnNext = TRUE;
     }
   }
+  DEBUG ((DEBUG_INFO, "%a: [%04x:%04x] %p\n", __FUNCTION__,
+    PciIoDevice->Pci.Hdr.VendorId, PciIoDevice->Pci.Hdr.DeviceId, *DriverImageHandle
+    ));
 
   ASSERT (IsNull (&PciIoDevice->OptionRomDriverList, Link));
   //
@@ -165,6 +172,7 @@ AddDriver (
   )
 {
   PCI_DRIVER_OVERRIDE_LIST      *Node;
+  DEBUG ((DEBUG_INFO, "%a: [%04x:%04x]\n", __FUNCTION__, PciIoDevice->Pci.Hdr.VendorId, PciIoDevice->Pci.Hdr.DeviceId));
 
   //
   // Caller should pass in either Image Handle or Image Path, but not both.

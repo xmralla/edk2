@@ -214,6 +214,8 @@ RegisterPciDevice (
   UINT8               Data8;
   BOOLEAN             HasEfiImage;
 
+  DEBUG ((DEBUG_INFO, "%a: [%04x:%04x]\n", __FUNCTION__,
+    PciIoDevice->Pci.Hdr.VendorId, PciIoDevice->Pci.Hdr.DeviceId));
   //
   // Install the pciio protocol, device path protocol
   //
@@ -305,6 +307,8 @@ RegisterPciDevice (
   HasEfiImage = ContainEfiImage (PciIoDevice->PciIo.RomImage, PciIoDevice->PciIo.RomSize);
 
   if (HasEfiImage) {
+    DEBUG ((DEBUG_INFO, "%a: [%04x:%04x] Has Efi Image\n", __FUNCTION__,
+    PciIoDevice->Pci.Hdr.VendorId, PciIoDevice->Pci.Hdr.DeviceId));    
     Status = gBS->InstallMultipleProtocolInterfaces (
                     &PciIoDevice->Handle,
                     &gEfiLoadFile2ProtocolGuid,
@@ -893,6 +897,8 @@ CreateRootBridge (
   // option rom driver list
   //
   InitializeListHead (&Dev->ReservedResourceList);
+  DEBUG ((DEBUG_INFO, "%a: [%04x:%04x] init OptionRomDriverList\n", __FUNCTION__,
+    Dev->Pci.Hdr.VendorId, Dev->Pci.Hdr.DeviceId));
   InitializeListHead (&Dev->OptionRomDriverList);
 
   return Dev;

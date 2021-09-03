@@ -2278,6 +2278,8 @@ BiosVideoVbeBltWorker (
   UINT32                         Pixel;
   UINTN                          TotalBytes;
 
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
+
   PciIo             = BiosVideoPrivate->PciIo;
 
   VbeFrameBuffer    = BiosVideoPrivate->VbeFrameBuffer;
@@ -2779,6 +2781,7 @@ BiosVideoGraphicsOutputVgaBlt (
   UINTN               CoordinateX;
   UINTN               CoordinateY;
   UINTN               CurrentMode;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   if (This == NULL || ((UINTN) BltOperation) >= EfiGraphicsOutputBltOperationMax) {
     return EFI_INVALID_PARAMETER;
@@ -3157,6 +3160,7 @@ BiosVideoVgaMiniPortSetMode (
 {
   BIOS_VIDEO_DEV        *BiosVideoPrivate;
   EFI_IA32_REGISTER_SET Regs;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   if (This == NULL) {
     return EFI_INVALID_PARAMETER;
@@ -3224,6 +3228,7 @@ BiosVideoNotifyExitBootServices (
 {
   BIOS_VIDEO_DEV         *BiosVideoPrivate;
   EFI_IA32_REGISTER_SET  Regs;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   BiosVideoPrivate  = (BIOS_VIDEO_DEV *)Context;
 
@@ -3262,6 +3267,7 @@ BiosVideoEntryPoint(
   )
 {
   EFI_STATUS  Status;
+  DEBUG ((DEBUG_INFO, "%a:\n", __FUNCTION__));
 
   //
   // Install driver model protocol(s).

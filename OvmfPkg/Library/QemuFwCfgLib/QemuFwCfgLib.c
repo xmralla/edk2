@@ -261,8 +261,10 @@ QemuFwCfgFindFile (
 {
   UINT32 Count;
   UINT32 Idx;
+  DEBUG ((DEBUG_INFO, "%a: finding %a\n", __FUNCTION__, Name));
 
   if (!InternalQemuFwCfgIsAvailable ()) {
+    DEBUG ((DEBUG_INFO, "%a: cannot find %a, ERROR: unsupported\n", __FUNCTION__, Name));
     return RETURN_UNSUPPORTED;
   }
 
@@ -284,9 +286,11 @@ QemuFwCfgFindFile (
     if (AsciiStrCmp (Name, FName) == 0) {
       *Item = SwapBytes16 (FileSelect);
       *Size = SwapBytes32 (FileSize);
+      DEBUG ((DEBUG_INFO, "%a: found %a\n", __FUNCTION__, Name));
       return RETURN_SUCCESS;
     }
   }
+  DEBUG ((DEBUG_INFO, "%a: not found %a\n", __FUNCTION__, Name));
 
   return RETURN_NOT_FOUND;
 }

@@ -62,6 +62,8 @@ BootLogoEnableLogo (
   UINTN                                 NewDestX;
   UINTN                                 NewDestY;
   UINTN                                 BufferSize;
+  
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
 
   Status  = gBS->LocateProtocol (&gEdkiiPlatformLogoProtocolGuid, NULL, (VOID **) &PlatformLogo);
   if (EFI_ERROR (Status)) {
@@ -72,12 +74,14 @@ BootLogoEnableLogo (
   //
   // Try to open GOP first
   //
+  DEBUG ((DEBUG_INFO, "%a: Try to open GOP first\n", __FUNCTION__));
   Status = gBS->HandleProtocol (gST->ConsoleOutHandle, &gEfiGraphicsOutputProtocolGuid, (VOID **) &GraphicsOutput);
   if (EFI_ERROR (Status) && FeaturePcdGet (PcdUgaConsumeSupport)) {
     GraphicsOutput = NULL;
     //
     // Open GOP failed, try to open UGA
     //
+    DEBUG ((DEBUG_INFO, "%a: Open GOP failed, try to open UGA\n", __FUNCTION__));
     Status = gBS->HandleProtocol (gST->ConsoleOutHandle, &gEfiUgaDrawProtocolGuid, (VOID **) &UgaDraw);
     if (EFI_ERROR (Status)) {
       UgaDraw = NULL;

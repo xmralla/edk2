@@ -226,6 +226,7 @@ ReadNvVarsFile (
   VOID                        *FileContents;
   EFI_HANDLE                  SerializedVariables;
 
+  DEBUG ((DEBUG_INFO, "%a start\n", __FUNCTION__));
   Status = GetNvVarsFile (FsHandle, TRUE, &File);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_INFO, "FsAccess.c: Could not open NV Variables file on this file system\n"));
@@ -235,12 +236,14 @@ ReadNvVarsFile (
   NvVarsFileReadCheckup (File, &FileExists, &FileSize);
   if (FileSize == 0) {
     FileHandleClose (File);
+    DEBUG ((DEBUG_INFO, "%a failed @ FileSize\n", __FUNCTION__));
     return EFI_UNSUPPORTED;
   }
 
   FileContents = FileHandleReadToNewBuffer (File, FileSize);
   if (FileContents == NULL) {
     FileHandleClose (File);
+    DEBUG ((DEBUG_INFO, "%a failed @ FileContents\n", __FUNCTION__));
     return EFI_UNSUPPORTED;
   }
 
@@ -256,12 +259,14 @@ ReadNvVarsFile (
              FileSize
              );
   if (!RETURN_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "%a calling SerializeVariablesSetSerializedVariables\n", __FUNCTION__));
     Status = SerializeVariablesSetSerializedVariables (SerializedVariables);
   }
 
   FreePool (FileContents);
   FileHandleClose (File);
 
+  DEBUG ((DEBUG_INFO, "%a end\n", __FUNCTION__));
   return Status;
 }
 

@@ -15,6 +15,27 @@ BOOLEAN mReserveIsaAliases = FALSE;
 BOOLEAN mReserveVgaAliases = FALSE;
 BOOLEAN mPolicyDetermined  = FALSE;
 
+
+const char * resource_type_str(PCI_BAR_TYPE ResType)
+{
+  const char * str;
+  switch(ResType) 
+  {
+    case PciBarTypeUnknown: str = "UNKNOWN";break;
+    case PciBarTypeIo16   : str = "IO16   ";break;
+    case PciBarTypeIo32   : str = "IO32   ";break;
+    case PciBarTypeMem32  : str = "MEM32  ";break;
+    case PciBarTypePMem32 : str = "PMEM32 ";break;
+    case PciBarTypeMem64  : str = "MEM64  ";break;
+    case PciBarTypePMem64 : str = "PMEM64 ";break;
+    case PciBarTypeOpRom  : str = "OPROM  ";break;
+    case PciBarTypeIo     : str = "IO     ";break;
+    case PciBarTypeMem    : str = "MEM    ";break;
+    default: str = "";break;
+  }
+  return str;
+}
+
 /**
   The function is used to skip VGA range.
 
@@ -104,6 +125,19 @@ InsertResourceNode (
   ASSERT (Bridge  != NULL);
   ASSERT (ResNode != NULL);
 
+  DEBUG ((DEBUG_INFO, "%a: ResNode %d/%d/%d %a Length=0x%x len_addr=%p to Bridge %d/%d/%d \n", __FUNCTION__, 
+          ResNode->PciDev->BusNumber,
+          ResNode->PciDev->DeviceNumber,
+          ResNode->PciDev->FunctionNumber,
+          resource_type_str(Bridge->ResType),
+          ResNode->Length,
+          &ResNode->Length,
+  
+          Bridge->PciDev->BusNumber,
+          Bridge->PciDev->DeviceNumber,
+          Bridge->PciDev->FunctionNumber
+          ));
+
   InsertHeadList (&Bridge->ChildList, &ResNode->Link);
 
   CurrentLink = Bridge->ChildList.ForwardLink->ForwardLink;
@@ -151,12 +185,18 @@ MergeResourceTree (
   IN BOOLEAN             TypeMerge
   )
 {
-
   LIST_ENTRY        *CurrentLink;
   PCI_RESOURCE_NODE *Temp;
 
   ASSERT (Dst != NULL);
   ASSERT (Res != NULL);
+
+  DEBUG ((DEBUG_INFO, "%a: Merge %a Length=0x%x to %a Length=0x%x \n", __FUNCTION__,
+          resource_type_str(Res->ResType),
+          Res->Length,
+          resource_type_str(Dst->ResType),
+          Dst->Length
+          ));
 
   while (!IsListEmpty (&Res->ChildList)) {
     CurrentLink = Res->ChildList.ForwardLink;
@@ -229,7 +269,6 @@ CalculateApertureIo16 (
   if (Bridge == NULL) {
     return ;
   }
-
   //
   // Assume the bridge is aligned
   //
@@ -323,6 +362,13 @@ CalculateApertureIo16 (
   // Use the larger one between the padding resource and actual occupied resource.
   //
   Bridge->Length = MAX (Bridge->Length, PaddingAperture);
+  DEBUG ((DEBUG_INFO, "%a: %d/%d/%d %a Length=0x%x\n", __FUNCTION__, 
+          Bridge->PciDev->BusNumber,
+          Bridge->PciDev->DeviceNumber,
+          Bridge->PciDev->FunctionNumber,
+          resource_type_str(Bridge->ResType),
+          Bridge->Length
+          ));
 }
 
 /**
@@ -340,7 +386,7 @@ CalculateResourceAperture (
   UINT64            Aperture[2];
   LIST_ENTRY        *CurrentLink;
   PCI_RESOURCE_NODE *Node;
-
+  
   if (Bridge == NULL) {
     return ;
   }
@@ -393,6 +439,13 @@ CalculateResourceAperture (
   // Use the larger one between the padding resource and actual occupied resource.
   //
   Bridge->Length = MAX (Aperture[PciResUsageTypical], Aperture[PciResUsagePadding]);
+  DEBUG ((DEBUG_INFO, "%a: %d/%d/%d %a Length=0x%x\n", __FUNCTION__, 
+          Bridge->PciDev->BusNumber,
+          Bridge->PciDev->DeviceNumber,
+          Bridge->PciDev->FunctionNumber,
+          resource_type_str(Bridge->ResType),
+          Bridge->Length
+          ));
 
   //
   // Adjust the bridge's alignment to the MAX (first) alignment of all children.
@@ -752,6 +805,8 @@ CreateResourceMap (
   PCI_RESOURCE_NODE *PMem64Bridge;
   LIST_ENTRY        *CurrentLink;
 
+  DEBUG ((DEBUG_INFO, "%a: start %d/%d/%d\n", __FUNCTION__, Bridge->BusNumber, Bridge->DeviceNumber, Bridge->FunctionNumber));
+
   CurrentLink = Bridge->ChildList.ForwardLink;
 
   while (CurrentLink != NULL && CurrentLink != &Bridge->ChildList) {
@@ -828,6 +883,11 @@ CreateResourceMap (
       //
       // Recursively create resource map on this bridge
       //
+      DEBUG ((DEBUG_INFO, "%a: Recursively create resource map on bridge %d/%d/%d\n", __FUNCTION__,
+              Temp->BusNumber,
+              Temp->DeviceNumber,
+              Temp->FunctionNumber));
+
       CreateResourceMap (
         Temp,
         IoBridge,
@@ -910,7 +970,6 @@ CreateResourceMap (
         FreePool (PMem64Bridge);
         PMem64Bridge = NULL;
       }
-
     }
 
     //
@@ -961,6 +1020,11 @@ CreateResourceMap (
   CalculateResourceAperture (Mem64Node);
   CalculateResourceAperture (PMem64Node);
   CalculateResourceAperture (IoNode);
+  DEBUG ((DEBUG_INFO, "%a: end %d/%d/%d \n", __FUNCTION__,
+          Bridge->BusNumber,
+          Bridge->DeviceNumber,
+          Bridge->FunctionNumber
+        ));
 }
 
 /**
@@ -1027,6 +1091,11 @@ DegradeResource (
   LIST_ENTRY           *ChildNodeLink;
   LIST_ENTRY           *NextChildNodeLink;
   PCI_RESOURCE_NODE    *ResourceNode;
+  DEBUG ((DEBUG_INFO, "%a: start %d/%d/%d\n", __FUNCTION__, 
+          Bridge->BusNumber,
+          Bridge->DeviceNumber,
+          Bridge->FunctionNumber
+        ));
 
   if (FeaturePcdGet (PcdPciDegradeResourceForOptionRom)) {
     //
@@ -1054,10 +1123,25 @@ DegradeResource (
         }
 
         if (!IsListEmpty (&PMem64Node->ChildList)) {
+          DEBUG ((DEBUG_INFO, "%a: %d/%d/%d PMem64Node !IsListEmpty\n", __FUNCTION__, 
+                  Bridge->BusNumber,
+                  Bridge->DeviceNumber,
+                  Bridge->FunctionNumber
+                ));
           ChildNodeLink = PMem64Node->ChildList.ForwardLink;
           while (ChildNodeLink != &PMem64Node->ChildList) {
             ResourceNode = RESOURCE_NODE_FROM_LINK (ChildNodeLink);
             NextChildNodeLink = ChildNodeLink->ForwardLink;
+            DEBUG ((DEBUG_INFO, "%a: %d/%d/%d ResourceNode %a Length=0x%x %a\n", __FUNCTION__, 
+                    Bridge->BusNumber,
+                    Bridge->DeviceNumber,
+                    Bridge->FunctionNumber,
+                    resource_type_str(ResourceNode->ResType),
+                    ResourceNode->Length,
+                    ResourceNode->Virtual ? "virtual" : 
+                    !PciIoDevice->PciBar[ResourceNode->Bar].BarTypeFixed ? "!BarTypeFixed" :
+                    ""
+                  ));
 
             if ((ResourceNode->PciDev == PciIoDevice) &&
                 (ResourceNode->Virtual || !PciIoDevice->PciBar[ResourceNode->Bar].BarTypeFixed)
@@ -1160,6 +1244,7 @@ DegradeResource (
       FALSE
       );
   }
+  DEBUG ((DEBUG_INFO, "%a: end %d/%d/%d\n", __FUNCTION__, Bridge->BusNumber, Bridge->DeviceNumber, Bridge->FunctionNumber));
 }
 
 /**
@@ -1179,9 +1264,10 @@ BridgeSupportResourceDecode (
   )
 {
   if (((Bridge->Decodes) & Decode) != 0) {
+    DEBUG ((DEBUG_INFO, "%a: Bridge->Decodes=0x%x Decode=0x%x TRUE\n", __FUNCTION__, Bridge->Decodes, Decode));
     return TRUE;
   }
-
+  DEBUG ((DEBUG_INFO, "%a: Bridge->Decodes=0x%x Decode=0x%x FALSE\n", __FUNCTION__, Bridge->Decodes, Decode));
   return FALSE;
 }
 

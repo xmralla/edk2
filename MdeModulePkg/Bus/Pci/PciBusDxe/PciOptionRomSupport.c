@@ -48,6 +48,8 @@ LocalLoadFile2 (
   VOID                                      *Scratch;
   EFI_DECOMPRESS_PROTOCOL                   *Decompress;
   UINT32                                    InitializationSize;
+  
+  DEBUG ((DEBUG_INFO, "%a: [0x%04x:0x%04x]\n", __FUNCTION__, PciIoDevice->Pci.Hdr.VendorId, PciIoDevice->Pci.Hdr.DeviceId));
 
   EfiOpRomImageNode = (MEDIA_RELATIVE_OFFSET_RANGE_DEVICE_PATH *) FilePath;
   if ((EfiOpRomImageNode == NULL) ||
@@ -88,6 +90,7 @@ LocalLoadFile2 (
 
     ImageBuffer             = (UINT8 *) EfiRomHeader + EfiRomHeader->EfiImageHeaderOffset;
     ImageLength             = InitializationSize - EfiRomHeader->EfiImageHeaderOffset;
+    DEBUG ((DEBUG_INFO, "%a: found ROM image length=0x%x\n", __FUNCTION__, ImageLength));
 
     if (EfiRomHeader->CompressionType != EFI_PCI_EXPANSION_ROM_HEADER_COMPRESSED) {
       //
@@ -300,6 +303,9 @@ GetOpRomInfo (
   }
 
   PciIoDevice->RomSize = (~AllOnes) + 1;
+  DEBUG ((DEBUG_INFO, "%a: [0x%04x:0x%04x] ROM size=0x%x\n", __FUNCTION__, 
+    PciIoDevice->Pci.Hdr.VendorId, PciIoDevice->Pci.Hdr.DeviceId, PciIoDevice->RomSize));
+
   return EFI_SUCCESS;
 }
 
@@ -398,6 +404,7 @@ LoadOpRomImage (
   RomImageSize  = 0;
   RomInMemory   = NULL;
   CodeType      = 0xFF;
+  DEBUG ((DEBUG_INFO, "%a: %d/%d/%d \n", __FUNCTION__, PciDevice->BusNumber, PciDevice->DeviceNumber, PciDevice->FunctionNumber));
 
   //
   // Get the RomBarIndex
@@ -437,6 +444,8 @@ LoadOpRomImage (
   // Enable RomBar
   //
   RomDecode (PciDevice, RomBarIndex, RomBar, TRUE);
+  DEBUG ((DEBUG_INFO, "%a: [0x%04x:0x%04x] ROM size=0x%x\n", __FUNCTION__, 
+    PciDevice->Pci.Hdr.VendorId, PciDevice->Pci.Hdr.DeviceId, PciDevice->RomSize));
 
   RomBarOffset  = RomBar;
   RetStatus     = EFI_NOT_FOUND;
@@ -515,7 +524,8 @@ LoadOpRomImage (
       FreePool (RomPcir);
       return EFI_OUT_OF_RESOURCES;
     }
-
+  DEBUG ((DEBUG_INFO, "%a: [0x%04x:0x%04x]  Copy Rom image size 0x%x into memory\n", __FUNCTION__, 
+    PciDevice->Pci.Hdr.VendorId, PciDevice->Pci.Hdr.DeviceId, RomImageSize));
     //
     // Copy Rom image into memory
     //
@@ -578,6 +588,7 @@ RomDecode (
 {
   UINT32              Value32;
   EFI_PCI_IO_PROTOCOL *PciIo;
+  DEBUG ((DEBUG_INFO, "%a: Enable=%d\n", __FUNCTION__, Enable));
 
   PciIo = &PciDevice->PciIo;
   if (Enable) {
@@ -661,6 +672,7 @@ ProcessOpRomImage (
   UINTN                                    BufferSize;
 
   Indicator = 0;
+  DEBUG ((DEBUG_INFO, "%a: [0x%04x:0x%04x]\n", __FUNCTION__, PciDevice->Pci.Hdr.VendorId, PciDevice->Pci.Hdr.DeviceId));
 
   //
   // Get the Address of the Option Rom image
@@ -718,6 +730,8 @@ ProcessOpRomImage (
     BufferSize  = 0;
     Buffer      = NULL;
     ImageHandle = NULL;
+    DEBUG ((DEBUG_INFO, "%a: [0x%04x:0x%04x] load image size 0x%x\n", __FUNCTION__,
+      PciDevice->Pci.Hdr.VendorId, PciDevice->Pci.Hdr.DeviceId, ImageSize));
 
     Status = gBS->LoadImage (
                     FALSE,
@@ -732,10 +746,18 @@ ProcessOpRomImage (
       // Record the Option ROM Image device path when LoadImage fails.
       // PciOverride.GetDriver() will try to look for the Image Handle using the device path later.
       //
+      DEBUG ((DEBUG_INFO, "%a: [0x%04x:0x%04x] LoadImage fails. Status=%d\n", __FUNCTION__,
+      PciDevice->Pci.Hdr.VendorId, PciDevice->Pci.Hdr.DeviceId, Status));
+
       AddDriver (PciDevice, NULL, PciOptionRomImageDevicePath);
     } else {
+      DEBUG ((DEBUG_INFO, "%a: [0x%04x:0x%04x] Start image\n", __FUNCTION__,
+      PciDevice->Pci.Hdr.VendorId, PciDevice->Pci.Hdr.DeviceId));
+
       Status = gBS->StartImage (ImageHandle, NULL, NULL);
       if (!EFI_ERROR (Status)) {
+        DEBUG ((DEBUG_INFO, "%a: [0x%04x:0x%04x] image started. add driver\n", __FUNCTION__,
+        PciDevice->Pci.Hdr.VendorId, PciDevice->Pci.Hdr.DeviceId));
         //
         // Record the Option ROM Image Handle
         //

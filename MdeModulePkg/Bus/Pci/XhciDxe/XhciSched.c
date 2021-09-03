@@ -71,6 +71,7 @@ XhcCmdTransfer (
 {
   EFI_STATUS      Status;
   URB             *Urb;
+  DEBUG ((EFI_D_INFO, "%a: start\n", __FUNCTION__));
 
   //
   // Validate the parameters
@@ -107,6 +108,7 @@ XhcCmdTransfer (
   XhcFreeUrb (Xhc, Urb);
 
 ON_EXIT:
+  DEBUG ((EFI_D_INFO, "%a: finish\n", __FUNCTION__));
   return Status;
 }
 
@@ -717,7 +719,7 @@ XhcDequeueTrbFromEndpoint (
   Dci = XhcEndpointToDci (Urb->Ep.EpAddr, (UINT8)(Urb->Ep.Direction));
   ASSERT (Dci < 32);
 
-  DEBUG ((EFI_D_INFO, "Stop Slot = %x,Dci = %x\n", SlotId, Dci));
+  DEBUG ((EFI_D_INFO, "%a: Stop Slot = %x,Dci = %x\n", __FUNCTION__, SlotId, Dci));
 
   //
   // 1) Send Stop endpoint command to stop xHC from executing of the TDs on the endpoint
@@ -1091,6 +1093,7 @@ XhcCheckUrbResult (
   UINT32                  High;
   UINT32                  Low;
   EFI_PHYSICAL_ADDRESS    PhyAddr;
+  DEBUG ((EFI_D_INFO, "%a: start\n", __FUNCTION__));
 
   ASSERT ((Xhc != NULL) && (Urb != NULL));
 
@@ -1246,6 +1249,7 @@ EXIT:
     XhcWriteRuntimeReg (Xhc, XHC_ERDP_OFFSET, XHC_LOW_32BIT (PhyAddr) | BIT3);
     XhcWriteRuntimeReg (Xhc, XHC_ERDP_OFFSET + 4, XHC_HIGH_32BIT (PhyAddr));
   }
+  DEBUG ((EFI_D_INFO, "%a: finish\n", __FUNCTION__));
 
   return Urb->Finished;
 }
@@ -1296,6 +1300,7 @@ XhcExecTransfer (
     Dci  = XhcEndpointToDci (Urb->Ep.EpAddr, (UINT8)(Urb->Ep.Direction));
     ASSERT (Dci < 32);
   }
+  DEBUG ((EFI_D_INFO, "%a: start SlotId=%d Dci=%d Timeout=%d\n",__FUNCTION__, SlotId, Dci, Timeout));
 
   if (Timeout == 0) {
     IndefiniteTimeout = TRUE;
@@ -1324,10 +1329,12 @@ XhcExecTransfer (
 
 RINGDOORBELL:
   XhcRingDoorBell (Xhc, SlotId, Dci);
+  DEBUG ((EFI_D_INFO, "%a: wait XhcCheckUrbResult \n",__FUNCTION__));
 
   do {
     Finished = XhcCheckUrbResult (Xhc, Urb);
     if (Finished) {
+      DEBUG ((EFI_D_INFO, "%a: XhcCheckUrbResult finished\n",__FUNCTION__));
       break;
     }
     gBS->Stall (XHC_1_MICROSECOND);
@@ -1337,6 +1344,7 @@ DONE:
   if (EFI_ERROR(Status)) {
     Urb->Result = EFI_USB_ERR_NOTEXECUTE;
   } else if (!Finished) {
+    DEBUG ((EFI_D_INFO, "%a: XhcCheckUrbResult timed out\n",__FUNCTION__));
     Urb->Result = EFI_USB_ERR_TIMEOUT;
     Status      = EFI_TIMEOUT;
   } else if (Urb->Result != EFI_USB_NOERROR) {
@@ -1346,6 +1354,7 @@ DONE:
   if (TimeoutEvent != NULL) {
     gBS->CloseEvent (TimeoutEvent);
   }
+  DEBUG ((EFI_D_INFO, "%a: finish SlotId=%d Dci=%d Timeout=%d\n",__FUNCTION__, SlotId, Dci, Timeout));
 
   return Status;
 }
@@ -1607,6 +1616,7 @@ XhcMonitorAsyncRequests (
   UINT8                   SlotId;
   EFI_STATUS              Status;
   EFI_TPL                 OldTpl;
+  DEBUG ((EFI_D_INFO, "%a: start\n",__FUNCTION__));
 
   OldTpl = gBS->RaiseTPL (XHC_TPL);
 
@@ -1619,6 +1629,7 @@ XhcMonitorAsyncRequests (
     // Make sure that the device is available before every check.
     //
     SlotId = XhcBusDevAddrToSlotId (Xhc, Urb->Ep.BusAddr);
+    DEBUG ((EFI_D_INFO, "%a: SlotId=0x%d\n",__FUNCTION__, SlotId));
     if (SlotId == 0) {
       continue;
     }
@@ -1691,6 +1702,7 @@ XhcMonitorAsyncRequests (
     XhcUpdateAsyncRequest (Xhc, Urb);
   }
   gBS->RestoreTPL (OldTpl);
+  DEBUG ((EFI_D_INFO, "%a: finish\n",__FUNCTION__));
 }
 
 /**
@@ -2055,6 +2067,7 @@ XhcRingDoorBell (
   IN UINT8                Dci
   )
 {
+  DEBUG ((EFI_D_INFO, "%a: SlotId=%d\n",__FUNCTION__,SlotId));
   if (SlotId == 0) {
     XhcWriteDoorBellReg (Xhc, 0, 0);
   } else {
@@ -2084,6 +2097,7 @@ RingIntTransferDoorBell (
 
   SlotId = XhcBusDevAddrToSlotId (Xhc, Urb->Ep.BusAddr);
   Dci    = XhcEndpointToDci (Urb->Ep.EpAddr, (UINT8)(Urb->Ep.Direction));
+  DEBUG ((EFI_D_INFO, "%a: SlotId=%d Dci=%d\n",__FUNCTION__,SlotId, Dci));
   XhcRingDoorBell (Xhc, SlotId, Dci);
   return EFI_SUCCESS;
 }
@@ -2122,6 +2136,7 @@ XhcInitializeDeviceSlot (
   UINT8                       ParentSlotId;
   DEVICE_CONTEXT              *ParentDeviceContext;
   EFI_PHYSICAL_ADDRESS        PhyAddr;
+  DEBUG ((EFI_D_INFO, "%a: start\n", __FUNCTION__));
 
   ZeroMem (&CmdTrb, sizeof (CMD_TRB_ENABLE_SLOT));
   CmdTrb.CycleBit = 1;
@@ -2134,11 +2149,11 @@ XhcInitializeDeviceSlot (
               (TRB_TEMPLATE **) (UINTN) &EvtTrb
               );
   if (EFI_ERROR (Status)) {
-    DEBUG ((EFI_D_ERROR, "XhcInitializeDeviceSlot: Enable Slot Failed, Status = %r\n", Status));
+    DEBUG ((EFI_D_ERROR, "%a: Enable Slot Failed, Status = %r\n", __FUNCTION__, Status));
     return Status;
   }
   ASSERT (EvtTrb->SlotId <= Xhc->MaxSlotsEn);
-  DEBUG ((EFI_D_INFO, "Enable Slot Successfully, The Slot ID = 0x%x\n", EvtTrb->SlotId));
+  DEBUG ((EFI_D_INFO, "%a: Enable Slot Successfully, The Slot ID = 0x%x\n", __FUNCTION__, EvtTrb->SlotId));
   SlotId = (UINT8)EvtTrb->SlotId;
   ASSERT (SlotId != 0);
 
@@ -2298,6 +2313,7 @@ XhcInitializeDeviceSlot (
     XhcDisableSlotCmd (Xhc, SlotId);
   }
 
+  DEBUG ((EFI_D_INFO, "%a: finish\n", __FUNCTION__));
   return Status;
 }
 
@@ -2335,6 +2351,7 @@ XhcInitializeDeviceSlot64 (
   UINT8                       ParentSlotId;
   DEVICE_CONTEXT_64           *ParentDeviceContext;
   EFI_PHYSICAL_ADDRESS        PhyAddr;
+  DEBUG ((EFI_D_INFO, "%a: start\n", __FUNCTION__));
 
   ZeroMem (&CmdTrb, sizeof (CMD_TRB_ENABLE_SLOT));
   CmdTrb.CycleBit = 1;
@@ -2347,7 +2364,7 @@ XhcInitializeDeviceSlot64 (
               (TRB_TEMPLATE **) (UINTN) &EvtTrb
               );
   if (EFI_ERROR (Status)) {
-    DEBUG ((EFI_D_ERROR, "XhcInitializeDeviceSlot64: Enable Slot Failed, Status = %r\n", Status));
+    DEBUG ((EFI_D_ERROR, "%a: Enable Slot Failed, Status = %r\n", __FUNCTION__, Status));
     return Status;
   }
   ASSERT (EvtTrb->SlotId <= Xhc->MaxSlotsEn);
@@ -2511,6 +2528,7 @@ XhcInitializeDeviceSlot64 (
     XhcDisableSlotCmd64 (Xhc, SlotId);
   }
 
+  DEBUG ((EFI_D_INFO, "%a: finish\n", __FUNCTION__));
   return Status;
 }
 

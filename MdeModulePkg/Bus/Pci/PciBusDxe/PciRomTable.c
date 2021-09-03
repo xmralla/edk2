@@ -49,6 +49,8 @@ PciRomAddImageMapping (
 {
   UINTN           Index;
   PCI_ROM_IMAGE   *NewTable;
+  DEBUG ((DEBUG_INFO, "%a: %d/%d/%d Rom Size=0x%x\n", __FUNCTION__, 
+    Bus, Dev, Func, RomSize));
 
   for (Index = 0; Index < mNumberOfPciRomImages; Index++) {
     if (mRomImageTable[Index].Seg  == Seg &&
@@ -113,6 +115,7 @@ PciRomGetImageMapping (
 {
   EFI_PCI_ROOT_BRIDGE_IO_PROTOCOL *PciRootBridgeIo;
   UINTN                           Index;
+  DEBUG ((DEBUG_INFO, "%a: %d/%d\n", __FUNCTION__, PciIoDevice->BusNumber, PciIoDevice->DeviceNumber));
 
   PciRootBridgeIo = PciIoDevice->PciRootBridgeIo;
 

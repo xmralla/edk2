@@ -212,9 +212,10 @@ ScanOrAdd64BitE820Ram (
   UINTN                FwCfgSize;
   EFI_E820_ENTRY64     E820Entry;
   UINTN                Processed;
-
+  DEBUG ((DEBUG_INFO, "%a: finding etc/e820\n", __FUNCTION__));
   Status = QemuFwCfgFindFile ("etc/e820", &FwCfgItem, &FwCfgSize);
   if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "%a: not found etc/e820\n", __FUNCTION__));
     return Status;
   }
   if (FwCfgSize % sizeof E820Entry != 0) {
@@ -344,6 +345,7 @@ GetFirstNonAddress (
   UINTN                FwCfgSize;
   UINT64               HotPlugMemoryEnd;
   RETURN_STATUS        PcdStatus;
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
 
   //
   // set FirstNonAddress to suppress incorrect compiler/analyzer warnings
@@ -675,6 +677,7 @@ QemuInitializeRamBelow1gb (
   VOID
   )
 {
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
   if (FeaturePcdGet (PcdSmmSmramRequire) && mQ35SmramAtDefaultSmbase) {
     AddMemoryRangeHob (0, SMM_DEFAULT_SMBASE);
     AddReservedMemoryBaseSizeHob (SMM_DEFAULT_SMBASE, MCH_DEFAULT_SMBASE_SIZE,

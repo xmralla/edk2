@@ -389,6 +389,7 @@ XhcGetRootHubPortStatus (
     Status = EFI_INVALID_PARAMETER;
     goto ON_EXIT;
   }
+  DEBUG ((EFI_D_INFO, "%a: port %d\n",__FUNCTION__, PortNumber));
 
   Offset                       = (UINT32) (XHC_PORTSC_OFFSET + (0x10 * PortNumber));
   PortStatus->PortStatus       = 0;
@@ -504,6 +505,7 @@ XhcSetRootHubPortFeature (
   }
 
   Offset = (UINT32) (XHC_PORTSC_OFFSET + (0x10 * PortNumber));
+  DEBUG ((EFI_D_INFO, "%a: port %d offset=0x%x\n",__FUNCTION__, PortNumber, Offset));
   State  = XhcReadOpReg (Xhc, Offset);
 
   //
@@ -538,7 +540,7 @@ XhcSetRootHubPortFeature (
       Status = XhcRunHC (Xhc, XHC_GENERIC_TIMEOUT);
 
       if (EFI_ERROR (Status)) {
-        DEBUG ((EFI_D_INFO, "XhcSetRootHubPortFeature :failed to start HC - %r\n", Status));
+        DEBUG ((EFI_D_INFO, "%a :failed to start HC - %r\n", __FUNCTION__, Status));
         break;
       }
     }
@@ -619,6 +621,7 @@ XhcClearRootHubPortFeature (
     Status = EFI_INVALID_PARAMETER;
     goto ON_EXIT;
   }
+  DEBUG ((EFI_D_INFO, "%a: port %d\n",__FUNCTION__, PortNumber));
 
   Offset = XHC_PORTSC_OFFSET + (0x10 * PortNumber);
 
@@ -753,6 +756,7 @@ XhcTransfer (
   EFI_STATUS              Status;
   EFI_STATUS              RecoveryStatus;
   URB                     *Urb;
+  DEBUG ((EFI_D_INFO, "%a: start\n", __FUNCTION__));
 
   ASSERT ((Type == XHC_CTRL_TRANSFER) || (Type == XHC_BULK_TRANSFER) || (Type == XHC_INT_TRANSFER_SYNC));
   Urb = XhcCreateUrb (
@@ -777,6 +781,7 @@ XhcTransfer (
   Status = XhcExecTransfer (Xhc, FALSE, Urb, Timeout);
 
   if (Status == EFI_TIMEOUT) {
+    DEBUG ((EFI_D_INFO, "%a: XhcExecTransfer timed out\n", __FUNCTION__));
     //
     // The transfer timed out. Abort the transfer by dequeueing of the TD.
     //
@@ -807,6 +812,7 @@ XhcTransfer (
 
   Xhc->PciIo->Flush (Xhc->PciIo);
   XhcFreeUrb (Xhc, Urb);
+  DEBUG ((EFI_D_INFO, "%a: finish\n", __FUNCTION__));
   return Status;
 }
 

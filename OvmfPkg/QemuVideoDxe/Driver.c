@@ -53,6 +53,13 @@ QEMU_VIDEO_CARD gQemuVideoCardList[] = {
         L"QEMU Standard VGA (secondary)"
     },{
         PCI_CLASS_DISPLAY_VGA,
+        0x4321,
+        0x1111,
+        QEMU_VIDEO_BOCHS_MMIO,
+        L"Simics QSP Standard VGA"
+
+    },{
+        PCI_CLASS_DISPLAY_VGA,
         0x1b36,
         0x0100,
         QEMU_VIDEO_BOCHS,
@@ -82,11 +89,12 @@ QemuVideoDetect(
   )
 {
   UINTN Index = 0;
-
+  DEBUG ((DEBUG_INFO, "%a: [%04x:%04x]-%02x\n", __FUNCTION__, VendorId, DeviceId, SubClass));
   while (gQemuVideoCardList[Index].VendorId != 0) {
     if (gQemuVideoCardList[Index].SubClass == SubClass &&
         gQemuVideoCardList[Index].VendorId == VendorId &&
         gQemuVideoCardList[Index].DeviceId == DeviceId) {
+  DEBUG ((DEBUG_INFO, "%a: [%04x:%04x]-%02x found %d\n", __FUNCTION__, VendorId, DeviceId, SubClass, Index));
       return gQemuVideoCardList + Index;
     }
     Index++;

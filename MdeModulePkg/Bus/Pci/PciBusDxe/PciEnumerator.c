@@ -287,6 +287,7 @@ ProcessOptionRom (
   //
   // Go through bridges to reach all devices
   //
+  DEBUG ((DEBUG_INFO, "%a: %d/%d/%d \n", __FUNCTION__, Temp->BusNumber, Temp->DeviceNumber, Temp->FunctionNumber));
   CurrentLink = Bridge->ChildList.ForwardLink;
   while (CurrentLink != NULL && CurrentLink != &Bridge->ChildList) {
     Temp = PCI_IO_DEVICE_FROM_LINK (CurrentLink);
@@ -480,6 +481,7 @@ DetermineRootBridgeAttributes (
 
   Attributes        = 0;
   RootBridgeHandle  = RootBridgeDev->Handle;
+  DEBUG ((DEBUG_INFO, "%a: start %d/%d/%d\n", __FUNCTION__, RootBridgeDev->BusNumber, RootBridgeDev->DeviceNumber, RootBridgeDev->FunctionNumber));
 
   //
   // Get root bridge attribute by calling into pci host bridge resource allocation protocol
@@ -490,6 +492,7 @@ DetermineRootBridgeAttributes (
                           &Attributes
                           );
 
+  DEBUG ((DEBUG_INFO, "%a: Attributes=0x%x\n", __FUNCTION__, Attributes));
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -499,10 +502,12 @@ DetermineRootBridgeAttributes (
   // Currently we hardcoded for ea815
   //
   if ((Attributes & EFI_PCI_HOST_BRIDGE_COMBINE_MEM_PMEM) != 0) {
+    DEBUG ((DEBUG_INFO, "%a: EFI_PCI_HOST_BRIDGE_COMBINE_MEM_PMEM\n", __FUNCTION__));
     RootBridgeDev->Decodes |= EFI_BRIDGE_PMEM_MEM_COMBINE_SUPPORTED;
   }
 
   if ((Attributes & EFI_PCI_HOST_BRIDGE_MEM64_DECODE) != 0) {
+    DEBUG ((DEBUG_INFO, "%a: EFI_PCI_HOST_BRIDGE_MEM64_DECODE\n", __FUNCTION__));
     RootBridgeDev->Decodes |= EFI_BRIDGE_MEM64_DECODE_SUPPORTED;
     RootBridgeDev->Decodes |= EFI_BRIDGE_PMEM64_DECODE_SUPPORTED;
   }
@@ -510,7 +515,9 @@ DetermineRootBridgeAttributes (
   RootBridgeDev->Decodes |= EFI_BRIDGE_MEM32_DECODE_SUPPORTED;
   RootBridgeDev->Decodes |= EFI_BRIDGE_PMEM32_DECODE_SUPPORTED;
   RootBridgeDev->Decodes |= EFI_BRIDGE_IO16_DECODE_SUPPORTED;
+  DEBUG ((DEBUG_INFO, "%a: Decodes=0x%x\n", __FUNCTION__, RootBridgeDev->Decodes));
 
+  DEBUG ((DEBUG_INFO, "%a: end\n", __FUNCTION__));
   return EFI_SUCCESS;
 }
 

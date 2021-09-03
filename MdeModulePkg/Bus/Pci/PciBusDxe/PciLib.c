@@ -478,6 +478,11 @@ PciHostBridgeResourceAllocator (
   EFI_RESOURCE_ALLOC_FAILURE_ERROR_DATA_PAYLOAD  AllocFailExtendedData;
   BOOLEAN                                        ResizableBarNeedAdjust;
   BOOLEAN                                        ResizableBarAdjusted;
+  
+  DEBUG ((DEBUG_INFO, "%a: start %d/%d/%d\n", __FUNCTION__, 
+                    RootBridgeDev->BusNumber, 
+                    RootBridgeDev->DeviceNumber,
+                    RootBridgeDev->FunctionNumber));
 
   ResizableBarNeedAdjust = PcdGetBool (PcdPcieResizableBarSupport);
 
@@ -970,7 +975,10 @@ PciHostBridgeResourceAllocator (
   // Notify the resource allocation phase is to end
   //
   Status = NotifyPhase (PciResAlloc, EfiPciHostBridgeEndResourceAllocation);
-
+  DEBUG ((DEBUG_INFO, "%a: end %d/%d/%d\n", __FUNCTION__, 
+                    RootBridgeDev->BusNumber, 
+                    RootBridgeDev->DeviceNumber,
+                    RootBridgeDev->FunctionNumber));
   return Status;
 }
 

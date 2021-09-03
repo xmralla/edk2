@@ -1690,6 +1690,7 @@ LegacyBiosBuildE820 (
   UINT64                      MemoryBlockLength;
 
   E820Table = (EFI_E820_ENTRY64 *) Private->E820Table;
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
 
   //
   // Get the EFI memory map.
@@ -1972,6 +1973,7 @@ LegacyBiosCompleteBdaBeforeBoot (
   BDA_STRUC                   *Bda;
   UINT16                      MachineConfig;
   DEVICE_PRODUCER_DATA_HEADER *SioPtr;
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
 
   Bda           = (BDA_STRUC *) ((UINTN) 0x400);
   MachineConfig = 0;

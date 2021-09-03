@@ -59,6 +59,7 @@ AcpiPlatformEntryPoint (
 {
   EFI_STATUS Status;
   EFI_EVENT  RootBridgesConnected;
+  DEBUG ((DEBUG_INFO, "%a: \n", __FUNCTION__));
 
   //
   // If the platform doesn't support PCI, or PCI enumeration has been disabled,

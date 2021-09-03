@@ -316,6 +316,7 @@ GraphicsOutputDriverBindingStart (
   HobStart = GetFirstGuidHob (&gEfiGraphicsInfoHobGuid);
   ASSERT ((HobStart != NULL) && (GET_GUID_HOB_DATA_SIZE (HobStart) == sizeof (EFI_PEI_GRAPHICS_INFO_HOB)));
   GraphicsInfo = (EFI_PEI_GRAPHICS_INFO_HOB *) (GET_GUID_HOB_DATA (HobStart));
+  DEBUG ((EFI_D_INFO, "[%a]: \n", __FUNCTION__));
 
   HobStart = GetFirstGuidHob (&gEfiGraphicsDeviceInfoHobGuid);
   if ((HobStart == NULL) || (GET_GUID_HOB_DATA_SIZE (HobStart) < sizeof (*DeviceInfo))) {
